@@ -7,6 +7,7 @@ class Version
   key :doc_id, String, :index => true
   key :message, String
   key :updater_id, String
+  key :type, String
 
   def content(key)
     cdata = self.data[key]

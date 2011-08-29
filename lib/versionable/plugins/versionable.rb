@@ -10,6 +10,11 @@ module Versionable
       super
     end
 
+    def update_attributes(attrs={}, options={})
+      save_version(options.delete(:updater_id)) if self.respond_to?(:rolling_back) && !rolling_back
+      super attrs
+    end
+
     def save_version(updater_id=nil)
       if self.respond_to?(:versions)
         version = self.current_version
@@ -21,6 +26,10 @@ module Versionable
         end
         if self.version_at(self.version_number).try(:data) != version.data
           version.updater_id = updater_id
+          version.type = self.class.to_s
+          if defined? User and User.respond_to?(:current) and updater_id == nil
+            version.updater_id = User.current.id
+          end
           version.save
 
           self.versions.shift if self.versions.count >= @limit
